@@ -37,8 +37,7 @@ for label, family_member_folder in enumerate(family_members_folders):
 
             # Предобрабатываем изображение
             image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-            image = cv2.resize(image, (100, 100))
-            image = np.expand_dims(image, axis=-1)
+            image = cv2.resize(image, (100, 100))  # Можете изменить размер по вашему усмотрению
 
             # Добавляем изображение и метку в списки
             images.append(image)
@@ -52,7 +51,8 @@ labels = np.array(labels)
 np.save(os.path.join(output_folder, 'images.npy'), images)
 np.save(os.path.join(output_folder, 'labels.npy'), labels)
 
-# Загружаем данные из файлов
+
+# Загрузим данные из файлов
 images = np.load(os.path.join(output_folder, 'images.npy'))
 labels = np.load(os.path.join(output_folder, 'labels.npy'))
 
@@ -74,10 +74,12 @@ model.compile(optimizer='adam',
 # Обучаем модель на обучающем наборе данных
 model.fit(X_train, y_train, epochs=10, validation_data=(X_test, y_test))
 
+# ... (ваш предыдущий код)
+
 # Сохраняем обученную модель
 model.save('family_face_recognition_model.h5')
 
-# Загружаем обученную модель
+# Загружаем обученную модель, как показано ранее
 model = keras.models.load_model('family_face_recognition_model.h5')
 
 # Указываем абсолютный путь к папке с фотографиями на диске D
@@ -95,21 +97,28 @@ for filename in os.listdir(input_folder):
         image_path = os.path.join(input_folder, filename)
         image = cv2.imread(image_path)
 
-        # Предобрабатываем изображение
+        # Предобрабатываем изображение (как в обучающем коде)
+        # Предобработка изображения
         image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         image = cv2.resize(image, (100, 100))
-        image = np.expand_dims(image, axis=-1)
+        image = np.expand_dims(image, axis=-1)  # Добавление одной размерности для канала цвета (чтобы соответствовать форме модели)
 
-        # Используем модель для распознавания лиц
+        # Используйте модель для распознавания лиц
         predicted_labels = model.predict(np.array([image]))
-
-        # Выводим информацию о том, кого модель видит на фотографии
-        print(f'На фотографии "{filename}" обнаружен: {family_member}')
 
         # Присваиваем каждому члену семьи метку (или "Другие фото", если не распознано)
         family_member = None
-        if predicted_labels.argmax() < len(family_members):
-            family_member = family_members[predicted_labels.argmax()]
+        if predicted_labels.argmax() == 0:
+            family_member = 'Marina'
+        elif predicted_labels.argmax() == 1:
+            family_member = 'Sergey'
+        elif predicted_labels.argmax() == 2:
+            family_member = 'Yarik'
+        elif predicted_labels.argmax() == 3:
+            family_member = 'Kirill'
+
+        # Выводим информацию о том, кого модель видит на фотографии
+        print(f'На фотографии "{filename}" обнаружен: {family_member}')
 
         # Перемещаем фотографию в соответствующую папку
         if family_member is not None:
